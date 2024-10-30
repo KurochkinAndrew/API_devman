@@ -16,10 +16,7 @@ def get_shorten_link(token, user_input):
     response = requests.post(url, data=payload, params=headers)
     response.raise_for_status()
 
-    try:
-        return response.json()['response']['short_url']
-    except KeyError:
-        return 'Вы ввели неправильную ссылку'
+    return response.json()['response']['short_url']
 
 
 def get_count_clicks(token, link):
@@ -38,12 +35,9 @@ def get_count_clicks(token, link):
     click_count.raise_for_status()
 
     if 'error' in click_count.json():
-        return 'Вы ввели неправильную ссылку'
+        raise Exception('Вы ввели неправильную ссылку')
 
-    try:
-        return click_count.json()['response']['stats'][0]['views']
-    except IndexError or KeyError:
-        return 0
+    return click_count.json()['response']['stats'][0]['views']
 
 
 def is_shorten_link(url):
@@ -57,11 +51,18 @@ def main():
     entered_link = input()
 
     if is_shorten_link(entered_link):
-        click_num = get_count_clicks(token, entered_link)
-        print(click_num)
+        try:
+            click_num = get_count_clicks(token, entered_link)
+            print(click_num)
+        except IndexError:
+            print(0)
     else:
-        short_link = get_shorten_link(token, entered_link)
-        print(short_link)
+        try:
+            short_link = get_shorten_link(token, entered_link)
+            print(short_link)
+        except KeyError:
+            print('Вы ввели неправильную ссылку')
+            raise Exception('Неправильная ссылка')
 
 
 if __name__ == "__main__":
